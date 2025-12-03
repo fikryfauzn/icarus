@@ -197,6 +197,12 @@
     if (!iso) return '';
     return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
+  function getEndTime(session) {
+    const start = new Date(session.start_time);
+    const duration = session.duration_minutes || 0;
+    const end = new Date(start.getTime() + duration * 60000);
+    return end.toISOString();
+  }
   function formatDurationHM(mins) {
       if (!mins) return '0h 0m';
       const h = Math.floor(mins / 60);
@@ -544,7 +550,7 @@
                                             </div>
                                             <div class="flex flex-col">
                                                 <span class="text-[9px] text-zinc-500 uppercase font-bold">Time</span>
-                                                <span class="text-xs font-mono text-zinc-300">{formatTime(s.start_time)}</span>
+                                                <span class="text-xs font-mono text-zinc-300">{formatTime(s.start_time)} – {formatTime(getEndTime(s))}</span>
                                             </div>
                                             {#if s.outcome}
                                                 <div class="flex flex-col">
@@ -557,6 +563,10 @@
                                             <div class="flex flex-col">
                                                 <span class="text-[9px] text-zinc-500 uppercase font-bold">Bio-Input</span>
                                                 <span class="text-xs font-bold text-violet-300">Sleep Protocol</span>
+                                            </div>
+                                            <div class="flex flex-col">
+                                                <span class="text-[9px] text-zinc-500 uppercase font-bold">Time</span>
+                                                <span class="text-xs font-mono text-zinc-300">{formatTime(sl.sleep_start)} – {formatTime(sl.sleep_end)}</span>
                                             </div>
                                             <div class="flex flex-col">
                                                 <span class="text-[9px] text-zinc-500 uppercase font-bold">Quality</span>
@@ -639,7 +649,7 @@
                                         on:mouseleave={() => hoveredItem = null}
                                         on:click={() => openDetail(s)}
                                     >
-                                        <div class="w-full h-full rounded-t-[2px] {color} {opacity} border-t border-x border-white/10 bg-gradient-to-b from-white/10 to-transparent backdrop-blur-[1px] hover:brightness-125 shadow-[0_-4px_15px_rgba(0,0,0,0.3)]"></div>
+                                        <div class="w-full h-full rounded-t-[2px] {color} {opacity} border-t border-x border-white/10 bg-gradient-to-b from-white/10 to-transparent backdrop-blur-[1px] hover:brightness-125 shadow-[0_-4px_15px_rgba(0,0,0,0.3)] {hoveredItem?.type === 'session' && hoveredItem.data?.id === s.id ? 'brightness-125 ring-1 ring-white/30' : ''}"></div>
                                     </div>
                                 {/each}
                                 {#if $sessionStore.active}
