@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global dark mode override */
+body {
+  @apply bg-[#09090b] text-zinc-300 antialiased;
+  /* Reset the default centering from the template */
+  display: block; 
+  margin: 0;
+  place-items: unset;
+  min-width: unset;
+  min-height: 100vh;
+}

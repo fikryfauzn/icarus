@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Icarus Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header class="top-bar">
+    <h1>Icarus – Daily Performance</h1>
+  </header>
+
+  <main class="container">
+    <section class="controls">
+      <div class="control-group">
+        <label for="day-date">Day summary date</label>
+        <input type="date" id="day-date">
+        <button id="day-refresh">Load</button>
+        <button id="day-today">Today</button>
+      </div>
+
+      <div class="control-group">
+        <label for="week-start">Week start (Monday)</label>
+        <input type="date" id="week-start">
+        <button id="week-refresh">Load week</button>
+      </div>
+
+      <div class="control-group">
+        <label>Sleep vs Deep Work range</label>
+        <input type="date" id="svd-start">
+        <span>to</span>
+        <input type="date" id="svd-end">
+        <button id="svd-refresh">Load chart</button>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card" id="day-summary-card">
+        <h2>Day Summary</h2>
+        <pre id="day-summary-text" class="mono"></pre>
+      </div>
+
+      <div class="card" id="week-stats-card">
+        <h2>Weekly Stats</h2>
+        <pre id="week-stats-text" class="mono"></pre>
+      </div>
+
+      <div class="card wide" id="svd-card">
+        <h2>Sleep vs Deep Work</h2>
+        <canvas id="svd-chart" height="120"></canvas>
+        <pre id="svd-text" class="mono small"></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Local Icarus dashboard – uses your SQLite data</span>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
