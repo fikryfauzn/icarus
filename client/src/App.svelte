@@ -164,18 +164,33 @@
   }
   function getSleepPosition(sleep) {
       if (!sleep) return null;
-      const chartDate = new Date(today);
+
+      // Create date objects for sleep times
       const sStart = new Date(sleep.sleep_start);
       const sEnd = new Date(sleep.sleep_end);
-      const dayStart = new Date(chartDate.setHours(0,0,0,0));
-      const dayEnd = new Date(chartDate.setHours(23,59,59,999));
+
+      // Create date objects for chart day boundaries
+      const chartDate = new Date(today);
+      const dayStart = new Date(chartDate);
+      dayStart.setHours(0, 0, 0, 0);
+
+      const dayEnd = new Date(chartDate);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      // Calculate overlap with chart day
       const overlapStart = sStart < dayStart ? dayStart : sStart;
       const overlapEnd = sEnd > dayEnd ? dayEnd : sEnd;
-      if (overlapEnd <= overlapStart) return null; 
+
+      // Check if there's any overlap
+      if (overlapEnd <= overlapStart) return null;
+
+      // Calculate position and width
       const startMins = (overlapStart.getHours() * 60) + overlapStart.getMinutes();
-      const durationMins = (overlapEnd - overlapStart) / 1000 / 60;
+      const durationMins = (overlapEnd.getTime() - overlapStart.getTime()) / 1000 / 60;
+
       const left = (startMins / 1440) * 100;
       const width = (durationMins / 1440) * 100;
+
       return { left: `${left}%`, width: `${width}%` };
   }
   function formatTime(iso) {
@@ -229,7 +244,7 @@
             get('/analytics/score'),
             get(`/intake?date=${today}`)
         ]);
-        todaySessions = sessions.sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
+        todaySessions = sessions.sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
         todaySleep = sleep;
         todayIntake = intakeData;
         liveScore = scoreData.score || 0;
@@ -580,9 +595,13 @@
                         <div class="relative flex-1 w-full mt-4">
                             <div class="absolute top-[70%] left-0 right-0 h-px bg-zinc-700 z-10"></div>
                             
-                            <div class="absolute inset-0 flex pointer-events-none">
+                            <div class="absolute inset-0 pointer-events-none">
                                 {#each [0, 4, 8, 12, 16, 20, 24] as hour}
-                                    <div class="relative flex-1 border-r border-zinc-800/30 h-full">
+                                    {@const position = (hour / 24) * 100}
+                                    <div
+                                        class="absolute top-0 bottom-0 border-r border-zinc-800/30"
+                                        style="left: {position}%;"
+                                    >
                                         <span class="absolute bottom-2 -right-3 text-[9px] text-zinc-700 font-mono">{hour.toString().padStart(2, '0')}:00</span>
                                     </div>
                                 {/each}
@@ -613,9 +632,9 @@
                                         {@const stressColor = stress > 7 ? 'bg-red-500' : stress > 4 ? 'bg-orange-500/80' : 'bg-zinc-700/50'}
                                         <div class="absolute top-[70%] rounded-b-[2px] {stressColor} transition-all border-x border-white/5 pointer-events-none z-10 mix-blend-hard-light" style="left: {pos.left}; width: {pos.width}; height: {stressHeight}%;"></div>
                                     {/if}
-                                    <div 
+                                    <div
                                         class="absolute bottom-[30%] group transition-all duration-300 hover:z-50 cursor-pointer z-20"
-                                        style="left: {pos.left}; width: {pos.width}; height: {s.outcome ? (score * 0.7) : 40}%;"
+                                        style="left: {pos.left}; width: {pos.width}; height: {s.outcome ? (score * 0.5) : 30}%;"
                                         on:mouseenter={() => hoveredItem = { type: 'session', data: s }}
                                         on:mouseleave={() => hoveredItem = null}
                                         on:click={() => openDetail(s)}
@@ -626,7 +645,7 @@
                                 {#if $sessionStore.active}
                                     {@const activeS = $sessionStore.active}
                                     {@const pos = getPosition(activeS)}
-                                    <div class="absolute bottom-[30%] z-20 group transition-all duration-1000 ease-linear" style="left: {pos.left}; width: {pos.width}; height: 35%;">
+                                    <div class="absolute bottom-[30%] z-20 group transition-all duration-1000 ease-linear" style="left: {pos.left}; width: {pos.width}; height: 25%;">
                                         <div class="w-full h-full rounded-t-[2px] border-t border-x border-emerald-500/30 bg-[repeating-linear-gradient(45deg,rgba(16,185,129,0.1),rgba(16,185,129,0.1)_10px,rgba(16,185,129,0.05)_10px,rgba(16,185,129,0.05)_20px)] animate-pulse"></div>
                                         <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-emerald-500 text-black text-[9px] font-bold px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(16,185,129,0.4)] tracking-wider">LIVE</div>
                                     </div>
