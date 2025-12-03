@@ -544,10 +544,10 @@ def _get_date_range_from_args():
     """Helper to extract start/end from query params or default to Today."""
     start_str = request.args.get("start")
     end_str = request.args.get("end")
-    
-    if start_str and end_str:
+
+    if start_str and end_str and start_str.strip() and end_str.strip():
         return _parse_date(start_str), _parse_date(end_str)
-    
+
     return date.today(), date.today()
 
 @app.route("/api/analytics/score", methods=["GET"])

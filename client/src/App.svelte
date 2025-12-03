@@ -315,29 +315,41 @@
     if (!$sessionStore.active) return;
     if (!endSessionData.feel_tag.trim()) endSessionData.feel_tag = "neutral";
 
-    // First end the session
-    await sessionStore.stop($sessionStore.active.id, endSessionData);
+    try {
+      // Save original values before ending session
+      const sessionId = $sessionStore.active.id;
+      const originalWorkType = $sessionStore.active.context.work_type;
 
-    // Update work type if it changed from the original
-    const originalWorkType = $sessionStore.active.context.work_type;
-    if (endSessionData.work_type && endSessionData.work_type !== originalWorkType) {
-      try {
-        await fetch(`/api/sessions/${$sessionStore.active.id}/work-type`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ work_type: endSessionData.work_type })
-        });
-      } catch (e) {
-        console.error("Failed to update work type:", e);
+      // First end the session
+      await sessionStore.stop(sessionId, endSessionData);
+
+      // Update work type if it changed from the original
+      if (endSessionData.work_type && endSessionData.work_type !== originalWorkType) {
+        try {
+          await fetch(`/api/sessions/${sessionId}/work-type`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ work_type: endSessionData.work_type })
+          });
+        } catch (e) {
+          console.error("Failed to update work type:", e);
+        }
       }
-    }
 
-    showEndModal = false;
-    isHudVisible = false;
-    endSessionData.evidence_note = "";
-    endSessionData.feel_tag = "";
-    endSessionData.work_type = "Deep"; // Reset to default
-    refreshData();
+      // Close modal and reset state
+      showEndModal = false;
+      isHudVisible = false;
+      endSessionData.evidence_note = "";
+      endSessionData.feel_tag = "";
+      endSessionData.work_type = "Deep"; // Reset to default
+
+      // Refresh data and ensure modal is closed
+      await refreshData();
+    } catch (error) {
+      console.error("Failed to end session:", error);
+      // Optionally show error to user
+      alert("Failed to end session. Please try again.");
+    }
   }
   async function handleDelete(id) {
       if(!confirm("Permanently delete this record?")) return;
@@ -1062,9 +1074,15 @@
             <div class="flex justify-between items-start mb-6 border-b border-zinc-800 pb-4">
                 <div>
                     <h3 class="text-xl font-bold text-white tracking-tight">{selectedSession.context.project_name}</h3>
+                    {#if selectedSession.context.activity_description}
+                        <p class="text-sm text-zinc-400 mt-2">{selectedSession.context.activity_description}</p>
+                    {/if}
                     <div class="flex gap-2 mt-2">
                         <span class="text-xs font-mono bg-zinc-800 px-2 py-1 rounded text-zinc-400 border border-zinc-700">{selectedSession.context.domain}</span>
                         <span class="text-xs font-mono bg-zinc-800 px-2 py-1 rounded text-zinc-400 border border-zinc-700">{selectedSession.context.work_type}</span>
+                        {#if selectedSession.context.planned_duration_min}
+                            <span class="text-xs font-mono bg-zinc-800 px-2 py-1 rounded text-zinc-400 border border-zinc-700">Planned: {selectedSession.context.planned_duration_min}m</span>
+                        {/if}
                     </div>
                 </div>
                 <button on:click={() => showDetailModal = false} class="text-zinc-500 hover:text-white">✕</button>
